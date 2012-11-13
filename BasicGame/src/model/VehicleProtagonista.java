@@ -15,7 +15,6 @@ import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
-import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.CameraNode;
@@ -29,7 +28,7 @@ import com.jme3.scene.control.CameraControl;
  * @author Sergi
  */
 public class VehicleProtagonista {
-
+    
     private float mass;
     private VehicleControl vehicle;
     private Geometry chasis1;
@@ -43,24 +42,12 @@ public class VehicleProtagonista {
     private Node vehicleNode;
     private PhysicsSpace physicsSpace;
     private Camera cam;
-    //Propiedades del coche
-    private float steeringValue = 0;
-    private float accelerationValue = 0;
-    private final float accelerationForce = 1000.0f;
-    private final float brakeForce = 100.0f;
-    //Factores para disminuir y aumentar la acceleracion y la frenadas
-    private int accelerationFactor = 2; //Factor multiplicativo
-    private int brakeForceFactor = 3;   //Factor de division
-    private double reverseFactor = 4;    //Factor de division
-    //Variable per saber si estas en mode normal o marcha atras.
-    private boolean reverseMode = false;
-    private boolean handBrake = false;
-
-    public VehicleProtagonista(AssetManager asset, PhysicsSpace phy, Camera cam) {
+    
+    public VehicleProtagonista(AssetManager asset, PhysicsSpace phy, Camera cam){
         assetManager = asset;
         physicsSpace = phy;
     }
-
+    
     private Geometry findGeom(Spatial spatial, String name) {
         if (spatial instanceof Node) {
             Node node = (Node) spatial;
@@ -79,25 +66,22 @@ public class VehicleProtagonista {
         return null;
     }
 
-    public void buildCar(ColorRGBA colorChasis, ColorRGBA colorWheel) {
+    public void buildCar() {
         mass = 400;
-        Material matChasis = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        Material matWheel = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        //mat.getAdditionalRenderState().setWireframe(true);
-        matChasis.setColor("Color", colorChasis);
-        matWheel.setColor("Color", colorWheel);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.getAdditionalRenderState().setWireframe(true);
+        mat.setColor("Color", ColorRGBA.Red);
 
 
         //create a compound shape and attach the BoxCollisionShape for the car body at 0,1,0
         //this shifts the effective center of mass of the BoxCollisionShape to 0,-1,0
         //CompoundCollisionShape compoundShape = new CompoundCollisionShape();
-
+        
         Node meshNode = (Node) assetManager.loadModel("Models/tempCar/Car.scene");
-
+        
         chasis1 = findGeom(meshNode, "Car");
         chasis1.rotate(0, 3.135f, 0);
-        chasis1.setMaterial(matChasis);
-
+        
         CollisionShape carHull = CollisionShapeFactory.createDynamicMeshShape(chasis1);
         BoundingBox box = (BoundingBox) chasis1.getModelBound();
         //BoxCollisionShape box = new BoxCollisionShape(new Vector3f(1.2f, 0.5f, 2.4f));
@@ -107,15 +91,15 @@ public class VehicleProtagonista {
         vehicleNode = new Node("vehicleNode");
         vehicle = new VehicleControl(carHull, mass);
         vehicleNode.addControl(vehicle);
-
-
+        
+        
         //Geometry glass = findGeom(meshNode, "Cube2");
-
+        
         //Spatial chasis = (Spatial)assetManager.loadModel("Models/Cube.mesh.xml");
         vehicleNode.attachChild(chasis1);
         //vehicleNode.attachChild(glass);
 
-
+        
         //setting suspension values for wheels, this can be a bit tricky
         //see also https://docs.google.com/Doc?docid=0AXVUZ5xw6XpKZGNuZG56a3FfMzU0Z2NyZnF4Zmo&hl=en
         float stiffness = 200.0f;//200=f1 car
@@ -125,7 +109,7 @@ public class VehicleProtagonista {
         vehicle.setSuspensionDamping(dampValue * 2.0f * FastMath.sqrt(stiffness));
         vehicle.setSuspensionStiffness(stiffness);
         vehicle.setMaxSuspensionForce(10000.0f);
-
+        
         //Create four wheels and add them at their locations
         Vector3f wheelDirection = new Vector3f(0, -1, 0); // was 0, -1, 0
         Vector3f wheelAxle = new Vector3f(-1, 0, 0); // was -1, 0, 0
@@ -138,7 +122,6 @@ public class VehicleProtagonista {
 
         Node node1 = new Node("wheel 1 node");
         wheel1 = findGeom(meshNode, "WheelFrontRight");
-        wheel1.setMaterial(matWheel);
         node1.attachChild(wheel1);
         wheel1.center();
         box = (BoundingBox) wheel1.getModelBound();
@@ -151,7 +134,6 @@ public class VehicleProtagonista {
         Node node2 = new Node("wheel 2 node");
         wheel2 = findGeom(meshNode, "WheelFrontLeft");
         node2.attachChild(wheel2);
-        wheel2.setMaterial(matWheel);
         wheel2.center();
         box = (BoundingBox) wheel2.getModelBound();
         vehicle.addWheel(wheel2.getParent(), box.getCenter().add(0, -front_wheel_h, 0),
@@ -159,7 +141,6 @@ public class VehicleProtagonista {
 
         Node node3 = new Node("wheel 3 node");
         wheel3 = findGeom(meshNode, "WheelBackRight");
-        wheel3.setMaterial(matWheel);
         node3.attachChild(wheel3);
         wheel3.center();
         box = (BoundingBox) wheel3.getModelBound();
@@ -168,7 +149,6 @@ public class VehicleProtagonista {
 
         Node node4 = new Node("wheel 4 node");
         wheel4 = findGeom(meshNode, "WheelBackLeft");
-        wheel4.setMaterial(matWheel);
         node4.attachChild(wheel4);
         wheel4.center();
         box = (BoundingBox) wheel4.getModelBound();
@@ -179,15 +159,15 @@ public class VehicleProtagonista {
         vehicleNode.attachChild(node2);
         vehicleNode.attachChild(node3);
         vehicleNode.attachChild(node4);
-
+        
         vehicle.getWheel(0).setFrictionSlip(9.8f);
         vehicle.getWheel(1).setFrictionSlip(9.8f);
-
-
+        
+        
         //rootNode.attachChild(vehicleNode);
-
+        
         physicsSpace.add(vehicle);
-
+        
         //set forward camera node that follows the character
         //camNode = new CameraNode("CamNode", cam);
         //camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
@@ -196,9 +176,9 @@ public class VehicleProtagonista {
         //camNode.setLocalTranslation(new Vector3f(-15, 15, -15));
         //camNode.lookAt(vehicleNode.getLocalTranslation(), Vector3f.UNIT_Y);
         //vehicleNode.attachChild(camNode);
-
-
-
+       
+         
+       
     }
 
     public VehicleControl getVehicle() {
@@ -206,125 +186,8 @@ public class VehicleProtagonista {
     }
 
     public Spatial getSpatial() {
-        return (Spatial) vehicleNode;
+        return (Spatial)vehicleNode;
     }
 
-    public void turnLeft(boolean value) {
-        if (value) {
-            steeringValue += .5f;
-        } else {
-            steeringValue += -.5f;
-        }
-        vehicle.steer(steeringValue);
-    }
-
-    public void turnRight(boolean value) {
-        if (value) {
-            steeringValue += -.5f;
-        } else {
-            steeringValue += .5f;
-        }
-        vehicle.steer(steeringValue);
-    }
-
-    public void forward(boolean value) {
-        System.out.println("Forward");
-        if (value) {
-            System.out.println("1---");
-            if(!handBrake){
-                reverseMode = false;
-                System.out.println("Hand brake "+handBrake);
-                System.out.println("Acceleration without hand brake");
-                accelerationValue = 0;
-                accelerationValue += (accelerationForce * accelerationFactor);
-                
-            } else {
-                accelerationValue = 0;
-            }
-            vehicle.accelerate(accelerationValue);
-        } else {
-            if(!handBrake){
-                if(accelerationValue != 0){
-                    accelerationValue -= (accelerationForce * accelerationFactor);
-                }
-            } else {
-                accelerationValue = 0;
-            }
-            vehicle.accelerate(accelerationValue);
-        }
-
-    }
-
-    public void back(boolean value) {
-        float valueBrake;
-        if (value) {
-            if (reverseMode) {
-                reverse();
-            } else {
-                if (getSpeed() < 5) {
-                    reverseMode = true;
-                    reverse();
-                } else {
-                    valueBrake = brakeForce / brakeForceFactor;
-                    brake(valueBrake);
-                }
-            }
-        } else {
-            reverseMode = false;
-            vehicle.accelerate(0f);
-        }
-    }
-
-    public void reset(boolean value) {
-        if (value) {
-            vehicle.setPhysicsLocation(Vector3f.ZERO);
-            vehicle.setPhysicsRotation(new Matrix3f());
-            vehicle.setLinearVelocity(Vector3f.ZERO);
-            vehicle.setAngularVelocity(Vector3f.ZERO);
-            vehicle.resetSuspension();
-            accelerationValue = 0;
-            steeringValue = 0;
-            reverseMode = false;
-            handBrake = false;
-            vehicle.accelerate(0f);
-        } else {
-        }
-    }
-
-    public void reverse() {
-        accelerationValue -= (accelerationForce / reverseFactor);
-        vehicle.accelerate(accelerationValue);
-    }
-
-    public void brake(float valueBrake) {
-        vehicle.brake(valueBrake);
-    }
     
-    public void handBrake(boolean value){
-        float valueBrake;
-        handBrake = true;
-        accelerationValue = 0;
-        vehicle.accelerate(accelerationValue);
-        if(value){
-            System.out.println("Method Hand brake true");
-            valueBrake = brakeForce*100;
-            brake(valueBrake);
-        } else {;
-            brake(0f);
-        }
-        handBrake = false; 
-    }
-
-    public void setReverseMode(boolean value) {
-        reverseMode = value;
-    }
-
-    public boolean getReverseMode() {
-        return reverseMode;
-    }
-
-    public float getSpeed() {
-        return vehicle.getLinearVelocity().length();
-        //return (float)Math.sqrt((Math.pow(vehicle.getLinearVelocity().x,2)+Math.pow(vehicle.getLinearVelocity().z,2)+Math.pow(vehicle.getLinearVelocity().y,2)));
-    }
 }
