@@ -32,7 +32,7 @@ public class Display {
         this.timer = timer;
     }
     
-    public void addDisplay(int xDisplay,int yDisplay,float scaleValueDisplay,int xPosText, int yPosText, float scaleValuePosText,int xPos, int yPos,float scaleValuePos, int xChronograph, int yChronograph, float scaleValueChronograph){
+    public void addDisplay(int xDisplay,int yDisplay,float scaleValueDisplay,int xPosText, int yPosText, float scaleValuePosText,int xPos, int yPos,float scaleValuePos, int xChronograph, int yChronograph, float scaleValueChronograph,int xMirror,int yMirror,float scaleValueMirror){
         
         float minDimension = Math.min(settings.getWidth(),settings.getHeight());      
         
@@ -86,15 +86,29 @@ public class Display {
         displayNode.attachChild(arrow);        
               
         guiNode.attachChild(displayNode);
-        this.displayNode.move(xDisplay,yDisplay,0);       
-    }
+        this.displayNode.move(xDisplay,yDisplay,0);
+        
+        //Agregar retrovisor        
+        Picture mirror = new Picture("mirror");
+        mirror.setImage(assetManager, "Textures/Display/retrovisor.png", true);
+        
+        mirror.setWidth(minDimension/scaleValueMirror);
+        mirror.setHeight(minDimension/scaleValueMirror);        
+        mirror.setPosition(0,0);
+        mirror.center();
+        mirror.move(xMirror,yMirror,0);                
+        guiNode.attachChild(mirror);
+        
+        this.startChronograph();
+        this.updatePosition(0);
+    }    
     
-    public void startChronograph(){
+    private void startChronograph(){
         this.chronograph.setText("00:00");
         this.timer.reset();        
     }
     
-    public void updateChronograph(){
+    private void updateChronograph(){
         float totalSeconds = this.timer.getTimeInSeconds();
         int seconds = (int)totalSeconds%60;
         int minutes = (int)totalSeconds/60;
@@ -112,13 +126,13 @@ public class Display {
         }
     }
     
-    public void updatePosition(int pos){
+    private void updatePosition(int pos){
         if (pos > 0){
             this.pos.setText(""+pos);
         }
     }
     
-    public void updateDisplay(float speed){
+    private void updateGauge(float speed){
         
         if(isDisplayAdded()){ //comprobamos si el display se ha creado, en caso contratio no hacemos nada            
                      
@@ -142,5 +156,11 @@ public class Display {
         else{
             return false;
         }
+    }
+    
+    public void updateDisplay(float speed,int position){        
+        this.updateGauge(speed);
+        this.updateChronograph();
+        this.updatePosition(position);        
     }
 }
